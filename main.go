@@ -13,11 +13,16 @@ func main() {
 	// Create new serveMux
 	mux := http.NewServeMux()
 
-	// Standard FileServer as handler
-	mux.Handle(appPath, http.StripPrefix(appPath, http.FileServer(http.Dir(rootPath))))
+	// Create new apiConfig
+	cfg := &apiConfig{}
 
-	// Register readiness endpoint
-	mux.HandleFunc("/healthz", readinessEndpoint)
+	// Standard FileServer as handler
+	mux.Handle(appPath, http.StripPrefix(appPath, cfg.middlewareMetricsInc(http.FileServer(http.Dir(rootPath)))))
+
+	// Register endpoints
+	mux.HandleFunc("/healthz", handlerReadiness)
+	mux.HandleFunc("/metrics", cfg.handlerMetrics)
+	mux.HandleFunc("/reset", cfg.handlerReset)
 
 	// Set server port and handler
 	srv := &http.Server{
@@ -28,15 +33,4 @@ func main() {
 	// Start server
 	log.Printf("Serving files from %s on port: %s\n", appPath, port)
 	log.Fatal(srv.ListenAndServe()) // Main blocks until server shuts down
-}
-
-func readinessEndpoint(w http.ResponseWriter, req *http.Request) {
-	// Write header
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-
-	// Write status code
-	w.WriteHeader(http.StatusOK)
-
-	// Write body
-	w.Write([]byte(http.StatusText(http.StatusOK)))
 }
