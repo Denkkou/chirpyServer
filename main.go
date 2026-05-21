@@ -20,9 +20,9 @@ func main() {
 	mux.Handle(appPath, http.StripPrefix(appPath, cfg.middlewareMetricsInc(http.FileServer(http.Dir(rootPath)))))
 
 	// Register endpoints
-	mux.HandleFunc("/healthz", handlerReadiness)
-	mux.HandleFunc("/metrics", cfg.handlerMetrics)
-	mux.HandleFunc("/reset", cfg.handlerReset)
+	mux.HandleFunc("GET /api/healthz", handlerReadiness)
+	mux.HandleFunc("GET /admin/metrics", cfg.handlerMetrics)
+	mux.HandleFunc("POST /admin/reset", cfg.handlerReset)
 
 	// Set server port and handler
 	srv := &http.Server{
